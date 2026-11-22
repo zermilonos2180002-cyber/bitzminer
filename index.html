@@ -1,0 +1,2381 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>BitzMiner — Пасивний майнінг</title>
+    <meta
+      name="description"
+      content="М'який сучасний інтерфейс BitzMiner для Telegram Mini Apps: пасивний консольний термінал майнінгу Bitz, прогресія швидкості, 5-годинний знос ПК із ремонтом, AdsGram, історія виводів від 20 000 Bitz та синхронізація з бекендом."
+    />
+    <meta property="og:title" content="BitzMiner — Пасивний майнінг" />
+    <meta
+      property="og:description"
+      content="Пасивний майнінг Bitz у живому терміналі, ремонт системи та вивід подарунків 15 ⭐ від 20 000 Bitz."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Google Fonts з підтримкою кирилиці -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- AdsGram SDK -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+    <style>
+      :root {
+        --bg-void: #0d0e12;
+        --bg-card: #16181f;
+        --bg-card-alt: #1e212a;
+        --border-soft: rgba(255, 255, 255, 0.07);
+        --border-soft-strong: rgba(255, 255, 255, 0.13);
+        --orange: #f59e0b;
+        --orange-warm: #fb923c;
+        --yellow-bitz: #facc15;
+        --matrix-green: #22c55e;
+        --matrix-red: #ef4444;
+        --text-main: #ffffff;
+        --text-muted: #9ca3af;
+        --btn-ink: #09090b;
+        --font-ui: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: var(--bg-void);
+        color: var(--text-main);
+        font-family: var(--font-ui);
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      /* Вертикальний контейнер смартфона max-width: 430px із м'якими відступами */
+      .app-shell {
+        position: relative;
+        width: 100%;
+        max-width: 430px;
+        height: 100dvh;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        padding: max(12px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom));
+        gap: 12px;
+        background-color: var(--bg-void);
+        overflow: hidden;
+      }
+
+      /* Верхня панель */
+      .top-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-height: 44px;
+        flex-shrink: 0;
+      }
+
+      .brand-cluster {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .brand-logo {
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .brand-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+      }
+
+      .brand-title {
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        color: var(--text-main);
+        white-space: nowrap;
+      }
+
+      .brand-title span {
+        color: var(--orange-warm);
+      }
+
+      .user-handle {
+        font-family: var(--font-mono);
+        font-size: 10.5px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 112px;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        color: var(--text-main);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: transform 0.12s ease, background-color 0.14s ease, border-color 0.14s ease;
+      }
+
+      .icon-btn:hover,
+      .icon-btn:focus-visible {
+        background-color: var(--bg-card-alt);
+        border-color: var(--border-soft-strong);
+        outline: 2px solid var(--orange-warm);
+        outline-offset: 1px;
+      }
+
+      .icon-btn:active {
+        transform: scale(0.94);
+      }
+
+      .seg-tabs {
+        display: flex;
+        align-items: center;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        border-radius: 13px;
+        padding: 3px;
+        gap: 3px;
+      }
+
+      .seg-tab {
+        height: 32px;
+        padding: 0 11px;
+        border-radius: 10px;
+        border: none;
+        background-color: transparent;
+        color: var(--text-muted);
+        font-family: var(--font-ui);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: background-color 0.15s ease, color 0.15s ease;
+      }
+
+      .seg-tab:hover {
+        color: var(--text-main);
+      }
+
+      .seg-tab.active {
+        background-color: var(--orange);
+        color: var(--btn-ink);
+        font-weight: 800;
+      }
+
+      .seg-tab:focus-visible {
+        outline: 2px solid var(--orange-warm);
+        outline-offset: 1px;
+      }
+
+      .history-count {
+        font-family: var(--font-mono);
+        font-size: 10.5px;
+        font-weight: 800;
+        color: var(--orange-warm);
+      }
+
+      .seg-tab.active .history-count {
+        color: var(--btn-ink);
+      }
+
+      /* Вкладки контенту */
+      .view-panel {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      /* М'яка картка балансу та прогресу до виводу */
+      .hud-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        border-radius: 18px;
+        padding: 14px 16px;
+        flex-shrink: 0;
+      }
+
+      .balance-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .balance-main {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        min-width: 0;
+      }
+
+      .coin-icon-wrap {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+      }
+
+      .balance-value-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .balance-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+        line-height: 1.2;
+      }
+
+      .balance-num {
+        font-family: var(--font-mono);
+        font-size: clamp(18px, 5vw, 22px);
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.03em;
+        color: var(--text-main);
+        line-height: 1.15;
+        white-space: nowrap;
+      }
+
+      .balance-unit {
+        color: var(--orange-warm);
+        font-size: 0.74em;
+        margin-left: 5px;
+      }
+
+      .speed-meta {
+        text-align: right;
+        flex-shrink: 0;
+      }
+
+      .speed-meta-label {
+        font-size: 10.5px;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+
+      .speed-meta-val {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        color: var(--orange-warm);
+        white-space: nowrap;
+      }
+
+      /* Прогрес-бар до виводу від 20 000 Bitz */
+      .goal-box {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .goal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 11.5px;
+        font-weight: 600;
+      }
+
+      .goal-title {
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .goal-title strong {
+        color: var(--orange-warm);
+      }
+
+      .goal-percent {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        font-weight: 800;
+        color: var(--orange);
+        flex-shrink: 0;
+      }
+
+      .progress-track {
+        width: 100%;
+        height: 8px;
+        border-radius: 999px;
+        background-color: var(--bg-void);
+        border: 1px solid var(--border-soft);
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background-color: var(--orange);
+        transition: width 0.2s ease;
+      }
+
+      /* Центр: Живий термінал пасивного майнінгу (без кліків) */
+      .terminal-stage {
+        position: relative;
+        flex: 1;
+        min-height: 180px;
+        width: 100%;
+        background-color: #000000;
+        border: 1px solid var(--border-soft);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+
+      #terminalCodeCanvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      #fxCanvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      /* Баланс Bitz у правому нижньому кутку термінала (яскраво-жовтий #facc15) */
+      .terminal-balance-overlay {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        z-index: 3;
+        background-color: rgba(13, 14, 18, 0.88);
+        border: 1px solid var(--border-soft-strong);
+        border-radius: 10px;
+        padding: 6px 11px;
+        font-family: var(--font-mono);
+        font-size: 14px;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        color: var(--yellow-bitz);
+        white-space: nowrap;
+        pointer-events: none;
+      }
+
+      /* Картка 5-годинного зносу ПК та ремонту */
+      .status-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        border-radius: 18px;
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .wear-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .wear-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-main);
+        min-width: 0;
+      }
+
+      .wear-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .wear-count {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        color: var(--orange-warm);
+        font-size: 11.5px;
+        white-space: nowrap;
+      }
+
+      .repair-mini-btn {
+        height: 28px;
+        padding: 0 10px 0 8px;
+        border-radius: 9px;
+        border: none;
+        background-color: var(--orange);
+        color: var(--btn-ink);
+        font-family: var(--font-ui);
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: background-color 0.14s ease, transform 0.12s ease;
+      }
+
+      .repair-mini-btn:hover,
+      .repair-mini-btn:focus-visible {
+        background-color: var(--orange-warm);
+        outline: 2px solid #ffffff;
+        outline-offset: 1px;
+      }
+
+      .repair-mini-btn:active {
+        transform: scale(0.96);
+      }
+
+      .wear-track {
+        width: 100%;
+        height: 8px;
+        border-radius: 999px;
+        background-color: var(--bg-void);
+        border: 1px solid var(--border-soft);
+        overflow: hidden;
+      }
+
+      .wear-fill {
+        height: 100%;
+        width: 100%;
+        border-radius: 999px;
+        background-color: var(--orange);
+        transition: width 0.15s ease;
+      }
+
+      .wear-fill.low {
+        background-color: var(--orange-warm);
+      }
+
+      .wear-fill.empty {
+        background-color: var(--matrix-red);
+      }
+
+      /* Головні кнопки дій (теплий помаранчевий #f59e0b / #fb923c, жирний темний текст #09090b) */
+      .actions-dock {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+
+      .action-btn {
+        position: relative;
+        width: 100%;
+        min-height: 50px;
+        border-radius: 16px;
+        border: none;
+        background-color: var(--orange);
+        color: var(--btn-ink);
+        padding: 9px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        cursor: pointer;
+        text-align: left;
+        font-family: var(--font-ui);
+        font-weight: 800;
+        transition: transform 0.12s ease, background-color 0.14s ease;
+      }
+
+      .action-btn:hover,
+      .action-btn:focus-visible {
+        background-color: var(--orange-warm);
+        outline: 2px solid #ffffff;
+        outline-offset: 1px;
+      }
+
+      .action-btn:active {
+        transform: scale(0.98);
+      }
+
+      .action-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        flex: 1;
+      }
+
+      .btn-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background-color: rgba(9, 9, 11, 0.12);
+        color: var(--btn-ink);
+      }
+
+      .btn-text {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+        flex: 1;
+      }
+
+      .btn-title {
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.2;
+        color: var(--btn-ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .btn-sub {
+        font-family: var(--font-mono);
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--btn-ink);
+        opacity: 0.82;
+        line-height: 1.25;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .action-right-tag {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--btn-ink);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .withdraw-note {
+        text-align: center;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.3;
+        color: var(--text-muted);
+        margin-top: -2px;
+      }
+
+      /* Вкладка Історії заявок */
+      .history-card {
+        flex: 1;
+        min-height: 0;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        border-radius: 18px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        overflow: hidden;
+      }
+
+      .history-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--border-soft);
+        padding-bottom: 12px;
+        flex-shrink: 0;
+      }
+
+      .history-head h2 {
+        font-size: 15.5px;
+        font-weight: 800;
+        color: var(--text-main);
+      }
+
+      .history-head span {
+        font-family: var(--font-mono);
+        font-size: 11.5px;
+        color: var(--text-muted);
+      }
+
+      .history-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-right: 2px;
+      }
+
+      .history-empty {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 10px;
+        padding: 24px;
+        color: var(--text-muted);
+      }
+
+      .history-empty strong {
+        color: var(--text-main);
+        font-size: 14.5px;
+      }
+
+      .history-empty p {
+        font-size: 12.5px;
+        line-height: 1.5;
+        max-width: 260px;
+      }
+
+      .history-item {
+        background-color: var(--bg-void);
+        border: 1px solid var(--border-soft);
+        border-radius: 14px;
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .history-item-left {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+      }
+
+      .history-item-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .history-item-meta {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .history-item-right {
+        text-align: right;
+        flex-shrink: 0;
+      }
+
+      .history-item-amount {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--orange-warm);
+      }
+
+      .history-item-status {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      /* М'які модальні вікна */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background-color: rgba(13, 14, 18, 0.84);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.16s ease;
+      }
+
+      .modal-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .modal-card {
+        width: 100%;
+        max-width: 360px;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-soft-strong);
+        border-radius: 18px;
+        padding: 22px 20px 20px;
+        transform: translateY(8px) scale(0.97);
+        transition: transform 0.16s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 13px;
+      }
+
+      .modal-backdrop.open .modal-card {
+        transform: translateY(0) scale(1);
+      }
+
+      .modal-icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 15px;
+        background-color: var(--bg-void);
+        border: 1px solid var(--border-soft);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1.25;
+      }
+
+      .modal-body {
+        font-size: 13.5px;
+        line-height: 1.55;
+        color: var(--text-muted);
+      }
+
+      .modal-body strong {
+        color: var(--text-main);
+      }
+
+      .modal-body .highlight-orange {
+        color: var(--orange-warm);
+        font-family: var(--font-mono);
+        font-weight: 700;
+      }
+
+      .ad-timer-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 2px;
+      }
+
+      .ad-timer-count {
+        font-family: var(--font-mono);
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--orange);
+      }
+
+      .ad-progress-track {
+        width: 100%;
+        height: 8px;
+        border-radius: 999px;
+        background-color: var(--bg-void);
+        border: 1px solid var(--border-soft);
+        overflow: hidden;
+      }
+
+      .ad-progress-fill {
+        height: 100%;
+        width: 0%;
+        background-color: var(--orange);
+        transition: width 0.1s linear;
+      }
+
+      .modal-actions {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 4px;
+      }
+
+      .modal-btn {
+        flex: 1;
+        min-width: 120px;
+        min-height: 46px;
+        padding: 0 12px;
+        border-radius: 13px;
+        border: 1px solid var(--border-soft);
+        background-color: var(--bg-card-alt);
+        color: var(--text-main);
+        font-family: var(--font-ui);
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        transition: transform 0.12s ease, background-color 0.14s ease;
+      }
+
+      .modal-btn.primary {
+        border: none;
+        background-color: var(--orange);
+        color: var(--btn-ink);
+        font-weight: 800;
+      }
+
+      .modal-btn.primary:hover {
+        background-color: var(--orange-warm);
+      }
+
+      .modal-btn:active {
+        transform: scale(0.97);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .progress-fill,
+        .wear-fill {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Спільний SVG-спрайт логотипа монети Bitz: кругла яскраво-жовта монета (#facc15) з вертикальною "B" та горизонтальною рискою -->
+    <svg width="0" height="0" style="position: absolute; pointer-events: none;" aria-hidden="true">
+      <defs>
+        <symbol id="bitzCoinSymbol" viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r="18" fill="#facc15" stroke="#09090b" stroke-width="2.2" />
+          <circle cx="20" cy="20" r="14.5" fill="none" stroke="#09090b" stroke-opacity="0.25" stroke-width="1.2" />
+          <text
+            x="20"
+            y="27"
+            text-anchor="middle"
+            font-family="JetBrains Mono, monospace"
+            font-size="21"
+            font-weight="800"
+            fill="#09090b"
+          >
+            B
+          </text>
+          <line x1="8.5" y1="20" x2="31.5" y2="20" stroke="#facc15" stroke-width="4.4" stroke-linecap="round" />
+          <line x1="9" y1="20" x2="31" y2="20" stroke="#09090b" stroke-width="2.3" stroke-linecap="round" />
+        </symbol>
+      </defs>
+    </svg>
+
+    <main class="app-shell">
+      <!-- Верхня панель навігації та профілю -->
+      <header class="top-bar">
+        <div class="brand-cluster">
+          <div class="brand-logo" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 40 40">
+              <use href="#bitzCoinSymbol" />
+            </svg>
+          </div>
+          <div class="brand-info">
+            <div class="brand-title">Bitz<span>Miner</span></div>
+            <div class="user-handle" id="tgUserHandle">@miner_guest</div>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <button
+            type="button"
+            class="icon-btn"
+            id="soundToggleBtn"
+            aria-label="Увімкнути або вимкнути звук"
+            title="Звук"
+          >
+            <svg id="soundIconOn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            </svg>
+            <svg id="soundIconOff" hidden width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <line x1="23" y1="9" x2="17" y2="15"></line>
+              <line x1="17" y1="9" x2="23" y2="15"></line>
+            </svg>
+          </button>
+
+          <nav class="seg-tabs" aria-label="Навігація">
+            <button type="button" class="seg-tab active" id="tabMiningBtn" aria-pressed="true">
+              Майнінг
+            </button>
+            <button type="button" class="seg-tab" id="tabHistoryBtn" aria-pressed="false">
+              Історія <span class="history-count" id="historyBadge">0</span>
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Екран 1: Головний екран майнінгу -->
+      <section class="view-panel" id="miningView" aria-label="Екран майнінгу">
+        <!-- Баланс (з логотипом монети Bitz) і прогрес до виводу 20 000 Bitz -->
+        <section class="hud-card" aria-label="Баланс та ціль">
+          <div class="balance-row">
+            <div class="balance-main">
+              <svg class="coin-icon-wrap" viewBox="0 0 40 40" aria-hidden="true">
+                <use href="#bitzCoinSymbol" />
+              </svg>
+
+              <div class="balance-value-wrap">
+                <span class="balance-label">Твій баланс</span>
+                <div class="balance-num" id="balanceDisplay">
+                  0.00000 <span class="balance-unit">Bitz</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="speed-meta">
+              <div class="speed-meta-label" id="speedLevelLabel">Рів. 1 · Швидкість</div>
+              <div class="speed-meta-val" id="miningSpeedDisplay">0.00001 Bitz/сек</div>
+            </div>
+          </div>
+
+          <div class="goal-box">
+            <div class="goal-header">
+              <span class="goal-title">Вивід від 20 000 Bitz = <strong>Подарунок 15 ⭐</strong></span>
+              <span class="goal-percent" id="goalPercentDisplay">0.00%</span>
+            </div>
+            <div
+              class="progress-track"
+              role="progressbar"
+              aria-label="Прогрес до мінімального виводу 20 000 Bitz"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+              id="goalProgressBarTrack"
+            >
+              <div class="progress-fill" id="goalProgressFill"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Центр: Живий консольний термінал пасивного майнінгу із зеленим кодом та жовтим балансом у кутку -->
+        <section
+          class="terminal-stage"
+          id="terminalStage"
+          aria-label="Живий термінал пасивного майнінгу Bitz"
+        >
+          <canvas id="terminalCodeCanvas" aria-hidden="true"></canvas>
+          <canvas id="fxCanvas" aria-hidden="true"></canvas>
+          <div class="terminal-balance-overlay" id="terminalBalanceOverlay">0.00000 Bitz</div>
+        </section>
+
+        <!-- Шкала зносу ПК на 5 годин із кнопкою ремонту за 1 Bitz або 2 реклами -->
+        <section class="status-panel" aria-label="Ресурс ПК">
+          <div class="wear-header">
+            <span class="wear-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+              </svg>
+              Знос ПК (5 год)
+            </span>
+            <span class="wear-right">
+              <span class="wear-count" id="wearDisplay">05:00:00 (100%)</span>
+              <button type="button" class="repair-mini-btn" id="repairPcBtn">
+                <svg width="14" height="14" viewBox="0 0 40 40" aria-hidden="true">
+                  <use href="#bitzCoinSymbol" />
+                </svg>
+                <span id="repairBtnText">Ремонт</span>
+              </button>
+            </span>
+          </div>
+          <div
+            class="wear-track"
+            role="progressbar"
+            aria-label="Ресурс ПК до зносу за 5 годин"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="100"
+            id="wearBarTrack"
+          >
+            <div class="wear-fill" id="wearBarFill"></div>
+          </div>
+        </section>
+
+        <!-- Головні кнопки: Апгрейд та Вивід 20 000 Bitz -->
+        <section class="actions-dock" aria-label="Дії майнера">
+          <button type="button" class="action-btn" id="upgradePcBtn">
+            <span class="action-left">
+              <span class="btn-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 40 40">
+                  <use href="#bitzCoinSymbol" />
+                </svg>
+              </span>
+              <span class="btn-text">
+                <span class="btn-title">Покращити ПК</span>
+                <span class="btn-sub" id="upgradeCostSub">0.00050 Bitz + 1 рекл.</span>
+              </span>
+            </span>
+            <span class="action-right-tag" id="upgradeLevelTag">Рівень 2</span>
+          </button>
+
+          <button type="button" class="action-btn" id="withdrawGiftBtn">
+            <span class="action-left">
+              <span class="btn-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M12 2L14.9 8.2L21.7 9.1L16.7 13.8L18 20.5L12 17.2L6 20.5L7.3 13.8L2.3 9.1L9.1 8.2L12 2Z"
+                    fill="#09090b"
+                  />
+                </svg>
+              </span>
+              <span class="btn-text">
+                <span class="btn-title">Вивести подарунок 15 ⭐</span>
+                <span class="btn-sub">Реклама + Списання Bitz</span>
+              </span>
+            </span>
+            <span class="action-right-tag">від 20 000 Bitz</span>
+          </button>
+          <div class="withdraw-note">Обробка може займати більше 7 днів</div>
+        </section>
+      </section>
+
+      <!-- Екран 2: Історія заявок на виведення -->
+      <section class="view-panel" id="historyView" aria-label="Історія заявок на виведення" hidden>
+        <div class="history-card">
+          <div class="history-head">
+            <h2>Історія заявок</h2>
+            <span id="historyTotalLabel">0 заявок</span>
+          </div>
+          <div class="history-list" id="historyList"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Власне модальне вікно -->
+    <div
+      class="modal-backdrop"
+      id="modalBackdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-card">
+        <div class="modal-icon" id="modalIcon"></div>
+        <h3 class="modal-title" id="modalTitle">Повідомлення</h3>
+        <div class="modal-body" id="modalBody"></div>
+        <div class="ad-timer-wrap" id="adTimerWrap" hidden>
+          <div class="ad-timer-count" id="adTimerCount">3 с</div>
+          <div class="ad-progress-track">
+            <div class="ad-progress-fill" id="adProgressFill"></div>
+          </div>
+        </div>
+        <div class="modal-actions" id="modalActions"></div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        'use strict';
+
+        /* =========================================================
+           1. КОНФІГУРАЦІЯ, API PYTHON-БЕКЕНДУ ТА ЕКОНОМІКА BITZMINER
+           ========================================================= */
+        const API_URL = "";
+        const ADSGRAM_BLOCK_ID = "YOUR_BLOCK_ID";
+        const STORAGE_KEY = 'bitzminer_state_v1';
+        const MIN_WITHDRAW_BITZ = 20000;
+        const GOAL_STARS = 15;
+        const MAX_WEAR_SECONDS = 5 * 60 * 60; // 5 годин = 18 000 сек
+        const REPAIR_COST_BITZ = 1;
+        const REPAIR_ADS_REQUIRED = 2;
+        const SPEED_GROWTH_MULTIPLIER = 2.1;
+        const COST_GROWTH_MULTIPLIER = 3.2;
+
+        function roundBitz(value) {
+          return Math.round(Number(value || 0) * 100000) / 100000;
+        }
+
+        /* =========================================================
+           2. TELEGRAM WEBAPP SDK + ЛОКАЛЬНЕ / CLOUD СХОВИЩЕ
+           ========================================================= */
+        const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+        const tgSupports61 = Boolean(
+          tg && typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('6.1')
+        );
+
+        if (tg) {
+          try {
+            tg.ready();
+            tg.expand();
+            if (tgSupports61) {
+              if (typeof tg.setHeaderColor === 'function') tg.setHeaderColor('#0d0e12');
+              if (typeof tg.setBackgroundColor === 'function') tg.setBackgroundColor('#0d0e12');
+            }
+          } catch (_) {}
+        }
+
+        function getTelegramInitData() {
+          try {
+            return tg && typeof tg.initData === 'string' ? tg.initData : '';
+          } catch (_) {
+            return '';
+          }
+        }
+
+        function getTelegramUser() {
+          try {
+            return tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+          } catch (_) {
+            return null;
+          }
+        }
+
+        function getTelegramUsername() {
+          const user = getTelegramUser();
+          if (user) {
+            if (user.username) return '@' + user.username;
+            const full = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
+            if (full) return full;
+            if (user.id) return 'ID:' + user.id;
+          }
+          return '@miner_guest';
+        }
+
+        function hapticNotify(type) {
+          try {
+            if (tgSupports61 && tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') {
+              tg.HapticFeedback.notificationOccurred(type || 'success');
+            }
+          } catch (_) {}
+        }
+
+        function hapticImpact(style) {
+          try {
+            if (tgSupports61 && tg.HapticFeedback && typeof tg.HapticFeedback.impactOccurred === 'function') {
+              tg.HapticFeedback.impactOccurred(style || 'medium');
+            }
+          } catch (_) {}
+        }
+
+        function hasCloudStorage() {
+          try {
+            return Boolean(
+              tg &&
+                tg.CloudStorage &&
+                typeof tg.CloudStorage.getItem === 'function' &&
+                typeof tg.CloudStorage.setItem === 'function' &&
+                (typeof tg.isVersionAtLeast !== 'function' || tg.isVersionAtLeast('6.9'))
+            );
+          } catch (_) {
+            return false;
+          }
+        }
+
+        function createDefaultState() {
+          return {
+            balance: 0,
+            level: 1,
+            wearSecondsLeft: MAX_WEAR_SECONDS,
+            repairAdsProgress: 0,
+            lastTickAt: Date.now(),
+            totalEarned: 0,
+            muted: false,
+            withdrawals: [],
+          };
+        }
+
+        function sanitizeState(raw) {
+          const def = createDefaultState();
+          if (!raw || typeof raw !== 'object') return def;
+
+          return {
+            balance: Number.isFinite(Number(raw.balance)) ? Math.max(0, roundBitz(Number(raw.balance))) : 0,
+            level: Number.isFinite(Number(raw.level)) ? Math.max(1, Math.floor(Number(raw.level))) : 1,
+            wearSecondsLeft: Number.isFinite(Number(raw.wearSecondsLeft))
+              ? Math.min(MAX_WEAR_SECONDS, Math.max(0, Math.floor(Number(raw.wearSecondsLeft))))
+              : MAX_WEAR_SECONDS,
+            repairAdsProgress: Number.isFinite(Number(raw.repairAdsProgress))
+              ? Math.min(REPAIR_ADS_REQUIRED - 1, Math.max(0, Math.floor(Number(raw.repairAdsProgress))))
+              : 0,
+            lastTickAt: Number.isFinite(Number(raw.lastTickAt)) ? Number(raw.lastTickAt) : Date.now(),
+            totalEarned: Number.isFinite(Number(raw.totalEarned))
+              ? Math.max(0, roundBitz(Number(raw.totalEarned)))
+              : 0,
+            muted: Boolean(raw.muted),
+            withdrawals: Array.isArray(raw.withdrawals) ? raw.withdrawals.slice(0, 50) : [],
+          };
+        }
+
+        function loadLocalState() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+              const initial = createDefaultState();
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+              return initial;
+            }
+            return sanitizeState(JSON.parse(raw));
+          } catch (_) {
+            return createDefaultState();
+          }
+        }
+
+        let cloudSaveTimer = null;
+        function saveState(immediateCloud) {
+          const payload = JSON.stringify(state);
+          try {
+            localStorage.setItem(STORAGE_KEY, payload);
+          } catch (_) {}
+
+          if (hasCloudStorage()) {
+            const flushCloud = function () {
+              try {
+                tg.CloudStorage.setItem(STORAGE_KEY, payload);
+              } catch (_) {}
+            };
+            if (immediateCloud) {
+              clearTimeout(cloudSaveTimer);
+              flushCloud();
+            } else {
+              clearTimeout(cloudSaveTimer);
+              cloudSaveTimer = setTimeout(flushCloud, 650);
+            }
+          }
+        }
+
+        function syncFromCloudStorage() {
+          if (!hasCloudStorage()) return;
+          try {
+            tg.CloudStorage.getItem(STORAGE_KEY, function (err, value) {
+              if (err || !value) return;
+              try {
+                const cloudState = sanitizeState(JSON.parse(value));
+                if (
+                  cloudState.totalEarned > state.totalEarned ||
+                  cloudState.level > state.level ||
+                  cloudState.withdrawals.length > state.withdrawals.length
+                ) {
+                  state = cloudState;
+                  applyOfflineMining();
+                  try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                  } catch (_) {}
+                  renderAll();
+                }
+              } catch (_) {}
+            });
+          } catch (_) {}
+        }
+
+        /* =========================================================
+           3. СИНХРОНІЗАЦІЯ З PYTHON-БЕКЕНДОМ (ЧЕРЕЗ API_URL)
+           ========================================================= */
+        function hasBackendConfigured() {
+          return typeof API_URL === 'string' && API_URL.trim().length > 0;
+        }
+
+        function buildApiEndpoint(path) {
+          const base = API_URL.trim().replace(/\/+$/, '');
+          const cleanPath = path.charAt(0) === '/' ? path : '/' + path;
+          return base + cleanPath;
+        }
+
+        async function apiPost(path, payload, keepalive) {
+          if (!hasBackendConfigured()) return null;
+          const initData = getTelegramInitData();
+          try {
+            const response = await fetch(buildApiEndpoint(path), {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': initData,
+              },
+              body: JSON.stringify(
+                Object.assign({}, payload || {}, {
+                  initData: initData,
+                  username: getTelegramUsername(),
+                })
+              ),
+              keepalive: Boolean(keepalive),
+            });
+            if (!response.ok) return null;
+            return await response.json().catch(function () {
+              return null;
+            });
+          } catch (_) {
+            return null;
+          }
+        }
+
+        let balanceSyncTimer = null;
+        function scheduleBackendBalanceSync(reason) {
+          if (!hasBackendConfigured()) return;
+          clearTimeout(balanceSyncTimer);
+          balanceSyncTimer = setTimeout(function () {
+            apiPost(
+              '/api/balance',
+              {
+                reason: reason || 'passive',
+                balance: state.balance,
+                level: state.level,
+                wearSecondsLeft: state.wearSecondsLeft,
+                totalEarned: state.totalEarned,
+              },
+              true
+            );
+          }, 1800);
+        }
+
+        async function syncInitialWithBackend() {
+          if (!hasBackendConfigured()) return;
+          const res = await apiPost('/api/sync', {
+            balance: state.balance,
+            level: state.level,
+            wearSecondsLeft: state.wearSecondsLeft,
+            repairAdsProgress: state.repairAdsProgress,
+            totalEarned: state.totalEarned,
+            withdrawals: state.withdrawals,
+          });
+          if (res && res.state && typeof res.state === 'object') {
+            state = sanitizeState(res.state);
+            saveState(true);
+            renderAll();
+          }
+        }
+
+        /* =========================================================
+           4. ФОРМУЛИ ПРОГРЕСІЇ ПК ТА ФОРМАТУВАННЯ BITZ
+           ========================================================= */
+        function getMiningSpeed(level) {
+          const safeLevel = Math.max(1, Math.floor(level));
+          if (safeLevel === 1) return 0.00001;
+          if (safeLevel === 2) return 0.002;
+          if (safeLevel === 3) return 0.4;
+          let speed = 0.4;
+          for (let i = 4; i <= safeLevel; i += 1) {
+            speed *= SPEED_GROWTH_MULTIPLIER;
+          }
+          return roundBitz(speed);
+        }
+
+        function getUpgradeCost(level) {
+          const safeLevel = Math.max(1, Math.floor(level));
+          if (safeLevel === 1) return 0.0005;
+          if (safeLevel === 2) return 0.1;
+          if (safeLevel === 3) return 15;
+          let cost = 15;
+          for (let i = 4; i <= safeLevel; i += 1) {
+            cost *= COST_GROWTH_MULTIPLIER;
+          }
+          return roundBitz(cost);
+        }
+
+        function formatBitz(num, decimals) {
+          const fixed = Number(num || 0).toFixed(decimals);
+          const parts = fixed.split('.');
+          parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+          return parts.join('.');
+        }
+
+        function formatBitzSmart(num) {
+          const n = Number(num || 0);
+          return n < 1000 ? formatBitz(n, 5) : formatBitz(n, 2);
+        }
+
+        function formatDurationHms(totalSec) {
+          const s = Math.max(0, Math.floor(totalSec));
+          const hrs = Math.floor(s / 3600);
+          const mins = Math.floor((s % 3600) / 60);
+          const secs = s % 60;
+          return (
+            String(hrs).padStart(2, '0') +
+            ':' +
+            String(mins).padStart(2, '0') +
+            ':' +
+            String(secs).padStart(2, '0')
+          );
+        }
+
+        function formatDateUk(isoStr) {
+          try {
+            const d = new Date(isoStr);
+            return d.toLocaleString('uk-UA', {
+              day: '2-digit',
+              month: '2-digit',
+              year: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+          } catch (_) {
+            return isoStr;
+          }
+        }
+
+        /* =========================================================
+           5. ПРОЦЕДУРНЕ АУДІО (WEB AUDIO API)
+           ========================================================= */
+        let audioCtx = null;
+
+        function ensureAudio() {
+          if (state.muted) return null;
+          if (!audioCtx) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (Ctx) audioCtx = new Ctx();
+          }
+          if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(function () {});
+          }
+          return audioCtx;
+        }
+
+        function playTone(freq, duration, type, volume, slideTo) {
+          const ctx = ensureAudio();
+          if (!ctx) return;
+          try {
+            const now = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type || 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+            if (slideTo) {
+              osc.frequency.exponentialRampToValueAtTime(slideTo, now + duration);
+            }
+            gain.gain.setValueAtTime(volume || 0.06, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + duration);
+          } catch (_) {}
+        }
+
+        function playErrorSound() {
+          playTone(190, 0.14, 'sawtooth', 0.04, 120);
+        }
+
+        function playSuccessSound() {
+          playTone(523.25, 0.11, 'sine', 0.06, 659.25);
+          setTimeout(function () {
+            playTone(783.99, 0.16, 'sine', 0.06, 1046.5);
+          }, 90);
+        }
+
+        /* =========================================================
+           6. ПОСИЛАННЯ НА DOM ТА СТАН
+           ========================================================= */
+        let state = loadLocalState();
+        let activeTab = 'mining';
+        let adRunning = false;
+
+        const el = {
+          tgUserHandle: document.getElementById('tgUserHandle'),
+          soundToggleBtn: document.getElementById('soundToggleBtn'),
+          soundIconOn: document.getElementById('soundIconOn'),
+          soundIconOff: document.getElementById('soundIconOff'),
+          tabMiningBtn: document.getElementById('tabMiningBtn'),
+          tabHistoryBtn: document.getElementById('tabHistoryBtn'),
+          historyBadge: document.getElementById('historyBadge'),
+          miningView: document.getElementById('miningView'),
+          historyView: document.getElementById('historyView'),
+          balanceDisplay: document.getElementById('balanceDisplay'),
+          speedLevelLabel: document.getElementById('speedLevelLabel'),
+          miningSpeedDisplay: document.getElementById('miningSpeedDisplay'),
+          goalPercentDisplay: document.getElementById('goalPercentDisplay'),
+          goalProgressBarTrack: document.getElementById('goalProgressBarTrack'),
+          goalProgressFill: document.getElementById('goalProgressFill'),
+          terminalStage: document.getElementById('terminalStage'),
+          terminalCodeCanvas: document.getElementById('terminalCodeCanvas'),
+          terminalBalanceOverlay: document.getElementById('terminalBalanceOverlay'),
+          fxCanvas: document.getElementById('fxCanvas'),
+          wearDisplay: document.getElementById('wearDisplay'),
+          wearBarTrack: document.getElementById('wearBarTrack'),
+          wearBarFill: document.getElementById('wearBarFill'),
+          repairPcBtn: document.getElementById('repairPcBtn'),
+          repairBtnText: document.getElementById('repairBtnText'),
+          upgradePcBtn: document.getElementById('upgradePcBtn'),
+          upgradeCostSub: document.getElementById('upgradeCostSub'),
+          upgradeLevelTag: document.getElementById('upgradeLevelTag'),
+          withdrawGiftBtn: document.getElementById('withdrawGiftBtn'),
+          historyTotalLabel: document.getElementById('historyTotalLabel'),
+          historyList: document.getElementById('historyList'),
+          modalBackdrop: document.getElementById('modalBackdrop'),
+          modalIcon: document.getElementById('modalIcon'),
+          modalTitle: document.getElementById('modalTitle'),
+          modalBody: document.getElementById('modalBody'),
+          adTimerWrap: document.getElementById('adTimerWrap'),
+          adTimerCount: document.getElementById('adTimerCount'),
+          adProgressFill: document.getElementById('adProgressFill'),
+          modalActions: document.getElementById('modalActions'),
+        };
+
+        /* =========================================================
+           7. ВЛАСНІ МОДАЛЬНІ ВІКНА (БЕЗ ALERT)
+           ========================================================= */
+        const ICONS = {
+          bitzCoin:
+            '<svg width="28" height="28" viewBox="0 0 40 40"><use href="#bitzCoinSymbol"/></svg>',
+          orangeStar:
+            '<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 2L14.9 8.2L21.7 9.1L16.7 13.8L18 20.5L12 17.2L6 20.5L7.3 13.8L2.3 9.1L9.1 8.2L12 2Z" fill="#f59e0b"/></svg>',
+          warn:
+            '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+          adPlay:
+            '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><polygon points="10 9 16 12 10 15 10 9" fill="#f59e0b"/></svg>',
+          wrench:
+            '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>',
+        };
+
+        function closeModal() {
+          el.modalBackdrop.classList.remove('open');
+          el.modalBackdrop.setAttribute('aria-hidden', 'true');
+          el.adTimerWrap.hidden = true;
+        }
+
+        function showModal(options) {
+          el.modalIcon.className = 'modal-icon';
+          el.modalIcon.innerHTML = options.icon || ICONS.bitzCoin;
+          el.modalTitle.textContent = options.title;
+          el.modalBody.innerHTML = options.bodyHtml;
+          el.adTimerWrap.hidden = true;
+          el.modalActions.innerHTML = '';
+
+          const buttons = options.buttons || [{ label: 'Зрозуміло', variant: 'primary', onClick: closeModal }];
+          buttons.forEach(function (btnCfg) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'modal-btn ' + (btnCfg.variant || '');
+            if (btnCfg.iconHtml) {
+              b.innerHTML = btnCfg.iconHtml + '<span>' + escapeHtml(btnCfg.label) + '</span>';
+            } else {
+              b.textContent = btnCfg.label;
+            }
+            b.addEventListener('click', function () {
+              if (btnCfg.onClick) {
+                btnCfg.onClick();
+              } else {
+                closeModal();
+              }
+            });
+            el.modalActions.appendChild(b);
+          });
+
+          el.modalBackdrop.classList.add('open');
+          el.modalBackdrop.setAttribute('aria-hidden', 'false');
+        }
+
+        /* =========================================================
+           8. ВІДЕОРЕКЛАМА ADSGRAM (АПГРЕЙД, РЕМОНТ 2 РЕКЛ., ВИВІД)
+           ========================================================= */
+        function runFallbackAdModal(purposeLabel) {
+          return new Promise(function (resolve) {
+            let cancelled = false;
+            const totalMs = 3000;
+            const start = performance.now();
+
+            el.modalIcon.className = 'modal-icon';
+            el.modalIcon.innerHTML = ICONS.adPlay;
+            el.modalTitle.textContent = 'Перегляд реклами';
+            el.modalBody.innerHTML =
+              'Рекламний блок <span class="highlight-orange">AdsGram</span> (' +
+              purposeLabel +
+              '). Зачекайте завершення таймера.';
+            el.adTimerWrap.hidden = false;
+            el.adTimerCount.textContent = '3 с';
+            el.adProgressFill.style.width = '0%';
+            el.modalActions.innerHTML = '';
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'modal-btn';
+            cancelBtn.textContent = 'Скасувати';
+            cancelBtn.addEventListener('click', function () {
+              cancelled = true;
+              closeModal();
+              resolve(false);
+            });
+            el.modalActions.appendChild(cancelBtn);
+
+            el.modalBackdrop.classList.add('open');
+            el.modalBackdrop.setAttribute('aria-hidden', 'false');
+
+            function tick(now) {
+              if (cancelled) return;
+              const elapsed = now - start;
+              const pct = Math.min(100, (elapsed / totalMs) * 100);
+              const leftSec = Math.max(0, Math.ceil((totalMs - elapsed) / 1000));
+              el.adProgressFill.style.width = pct.toFixed(1) + '%';
+              el.adTimerCount.textContent = leftSec + ' с';
+
+              if (elapsed >= totalMs) {
+                closeModal();
+                resolve(true);
+              } else {
+                requestAnimationFrame(tick);
+              }
+            }
+            requestAnimationFrame(tick);
+          });
+        }
+
+        async function watchRewardedAd(purposeLabel) {
+          if (adRunning) return false;
+          adRunning = true;
+
+          try {
+            const hasRealId = ADSGRAM_BLOCK_ID && ADSGRAM_BLOCK_ID !== 'YOUR_BLOCK_ID';
+            if (hasRealId && window.Adsgram && typeof window.Adsgram.init === 'function') {
+              try {
+                const AdController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+                const result = await AdController.show();
+                return Boolean(result && result.done);
+              } catch (_) {
+                return await runFallbackAdModal(purposeLabel);
+              }
+            }
+            return await runFallbackAdModal(purposeLabel);
+          } finally {
+            adRunning = false;
+          }
+        }
+
+        /* =========================================================
+           9. ЖИВИЙ ХАКЕРСЬКИЙ ТЕРМІНАЛ (ЗЕЛЕНИЙ КОД / ЧЕРВОНИЙ ЗУПИН) + FX
+           ========================================================= */
+        const termCtx = el.terminalCodeCanvas.getContext('2d');
+        const fxCtx = el.fxCanvas.getContext('2d');
+        const particles = [];
+        let fxAnimating = false;
+
+        let termWidth = 340;
+        let termHeight = 220;
+        let termScrollY = 0;
+        let lastFrameTime = performance.now();
+        let blockHeightCounter = 842100;
+        const LINE_HEIGHT = 17;
+        const terminalLines = [];
+        const HEX_CHARS = '0123456789ABCDEF';
+
+        function randomHex(len) {
+          let out = '';
+          for (let i = 0; i < len; i += 1) {
+            out += HEX_CHARS[Math.floor(Math.random() * 16)];
+          }
+          return out;
+        }
+
+        function randomBits(len) {
+          let out = '';
+          for (let i = 0; i < len; i += 1) {
+            out += Math.random() > 0.5 ? '1' : '0';
+          }
+          return out;
+        }
+
+        function generateTerminalLine(isBroken) {
+          blockHeightCounter += 1;
+          const speedStr = formatBitzSmart(getMiningSpeed(state.level));
+          if (isBroken) {
+            const errTemplates = [
+              '[ERR_HALT] SYSTEM WEAR 0% · NODE OFFLINE',
+              '0x' + randomHex(8) + '  FATAL: CORE_OVERHEAT_STOP',
+              '> REPAIR REQUIRED: 1 Bitz OR 2 ADS',
+              '[STOPPED] HASHRATE: 0.00000 Bitz/s',
+              '!! MEMORY_LOCK: ' + randomHex(4) + ':' + randomHex(4) + ' [HALT]',
+            ];
+            return {
+              text: errTemplates[Math.floor(Math.random() * errTemplates.length)],
+              bright: Math.random() > 0.45,
+            };
+          }
+
+          const roll = Math.random();
+          let text = '';
+          if (roll < 0.28) {
+            text = '0x' + randomHex(8) + '..' + randomHex(4) + '  BLK #' + blockHeightCounter + '  +' + speedStr + ' Bitz';
+          } else if (roll < 0.52) {
+            text = '> SHA256_MINER [' + randomHex(4) + ':' + randomHex(4) + '] NONCE=' + Math.floor(10000 + Math.random() * 89999);
+          } else if (roll < 0.74) {
+            text = randomBits(8) + ' ' + randomBits(8) + ' ' + randomBits(8) + '  [OK]';
+          } else if (roll < 0.9) {
+            text = '[NODE_LV' + state.level + '] RATE=' + speedStr + ' Bitz/s  MEM=' + randomHex(6);
+          } else {
+            text = 'BITZMINER::COMMIT(' + randomHex(6) + ') -> VERIFIED';
+          }
+          return {
+            text: text,
+            bright: Math.random() > 0.52,
+          };
+        }
+
+        function seedTerminalBuffer(isBroken) {
+          terminalLines.length = 0;
+          const needed = Math.ceil(termHeight / LINE_HEIGHT) + 6;
+          for (let i = 0; i < needed; i += 1) {
+            terminalLines.push(generateTerminalLine(isBroken));
+          }
+        }
+
+        function resizeCanvases() {
+          const rect = el.terminalStage.getBoundingClientRect();
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          termWidth = Math.max(100, Math.floor(rect.width));
+          termHeight = Math.max(100, Math.floor(rect.height));
+
+          el.terminalCodeCanvas.width = Math.floor(termWidth * dpr);
+          el.terminalCodeCanvas.height = Math.floor(termHeight * dpr);
+          if (termCtx) {
+            termCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          }
+
+          el.fxCanvas.width = Math.floor(termWidth * dpr);
+          el.fxCanvas.height = Math.floor(termHeight * dpr);
+          if (fxCtx) {
+            fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          }
+
+          seedTerminalBuffer(state.wearSecondsLeft <= 0);
+        }
+
+        let lastRenderedBroken = state.wearSecondsLeft <= 0;
+
+        function renderTerminalFrame(now) {
+          const dt = Math.min(0.1, (now - lastFrameTime) / 1000);
+          lastFrameTime = now;
+
+          const isBroken = state.wearSecondsLeft <= 0;
+          if (isBroken !== lastRenderedBroken) {
+            lastRenderedBroken = isBroken;
+            seedTerminalBuffer(isBroken);
+          }
+
+          if (!isBroken) {
+            const scrollSpeedPx = Math.min(72, 32 + state.level * 3);
+            termScrollY += scrollSpeedPx * dt;
+            while (termScrollY >= LINE_HEIGHT) {
+              termScrollY -= LINE_HEIGHT;
+              terminalLines.shift();
+              terminalLines.push(generateTerminalLine(false));
+            }
+          }
+
+          if (termCtx) {
+            termCtx.fillStyle = '#000000';
+            termCtx.fillRect(0, 0, termWidth, termHeight);
+            termCtx.font = '700 11px "JetBrains Mono", monospace';
+            termCtx.textBaseline = 'top';
+
+            for (let i = 0; i < terminalLines.length; i += 1) {
+              const y = 10 + i * LINE_HEIGHT - (isBroken ? 0 : termScrollY);
+              if (y < -LINE_HEIGHT || y > termHeight) continue;
+              const line = terminalLines[i];
+              if (isBroken) {
+                termCtx.fillStyle = line.bright ? '#ef4444' : '#b91c1c';
+              } else {
+                termCtx.fillStyle = line.bright ? '#22c55e' : '#15803d';
+              }
+              termCtx.fillText(line.text, 12, y);
+            }
+          }
+
+          requestAnimationFrame(renderTerminalFrame);
+        }
+
+        function spawnLevelParticles(localX, localY) {
+          const palette = ['#facc15', '#22c55e', '#f59e0b', '#ffffff'];
+          const count = 14;
+          for (let i = 0; i < count; i += 1) {
+            const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
+            const speed = 1.8 + Math.random() * 3.4;
+            particles.push({
+              x: localX,
+              y: localY,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed - 1.1,
+              size: 2.5 + Math.random() * 3,
+              color: palette[i % palette.length],
+              life: 0,
+              maxLife: 24 + Math.random() * 10,
+            });
+          }
+
+          if (!fxAnimating) {
+            fxAnimating = true;
+            requestAnimationFrame(stepParticles);
+          }
+        }
+
+        function stepParticles() {
+          if (!fxCtx) {
+            fxAnimating = false;
+            return;
+          }
+          fxCtx.clearRect(0, 0, termWidth, termHeight);
+
+          for (let i = particles.length - 1; i >= 0; i -= 1) {
+            const p = particles[i];
+            p.life += 1;
+            const t = p.life / p.maxLife;
+            if (t >= 1) {
+              particles.splice(i, 1);
+              continue;
+            }
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.11;
+            fxCtx.save();
+            fxCtx.globalAlpha = 1 - t;
+            fxCtx.fillStyle = p.color;
+            fxCtx.fillRect(p.x - p.size * 0.5, p.y - p.size * 0.5, p.size, p.size);
+            fxCtx.restore();
+          }
+
+          if (particles.length > 0) {
+            requestAnimationFrame(stepParticles);
+          } else {
+            fxAnimating = false;
+          }
+        }
+
+        /* =========================================================
+           10. ПАСИВНИЙ МАЙНІНГ, ЗНОС (5 ГОД) ТА ОНОВЛЕННЯ UI
+           ========================================================= */
+        function applyOfflineMining() {
+          const now = Date.now();
+          const elapsedSec = Math.floor((now - (state.lastTickAt || now)) / 1000);
+          state.lastTickAt = now;
+          if (elapsedSec <= 0 || state.wearSecondsLeft <= 0) return;
+
+          const activeSeconds = Math.min(elapsedSec, state.wearSecondsLeft);
+          const earned = roundBitz(getMiningSpeed(state.level) * activeSeconds);
+          state.balance = roundBitz(state.balance + earned);
+          state.totalEarned = roundBitz(state.totalEarned + earned);
+          state.wearSecondsLeft = Math.max(0, state.wearSecondsLeft - activeSeconds);
+        }
+
+        function stepPassiveMiningSecond() {
+          state.lastTickAt = Date.now();
+          if (state.wearSecondsLeft <= 0) {
+            return;
+          }
+          const speed = getMiningSpeed(state.level);
+          state.balance = roundBitz(state.balance + speed);
+          state.totalEarned = roundBitz(state.totalEarned + speed);
+          state.wearSecondsLeft = Math.max(0, state.wearSecondsLeft - 1);
+          saveState(false);
+          scheduleBackendBalanceSync('passive');
+          renderAll();
+        }
+
+        function escapeHtml(str) {
+          return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+        }
+
+        function renderHistory() {
+          const list = state.withdrawals || [];
+          el.historyBadge.textContent = String(list.length);
+          el.historyTotalLabel.textContent =
+            list.length === 1 ? '1 заявка' : list.length >= 2 && list.length <= 4 ? list.length + ' заявки' : list.length + ' заявок';
+
+          if (list.length === 0) {
+            el.historyList.innerHTML =
+              '<div class="history-empty">' +
+              '<svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.6">' +
+              '<path d="M12 2L14.9 8.2L21.7 9.1L16.7 13.8L18 20.5L12 17.2L6 20.5L7.3 13.8L2.3 9.1L9.1 8.2L12 2Z"/></svg>' +
+              '<strong>Заявок поки що немає</strong>' +
+              '<p>Накопич від 20 000 Bitz та виведи свій перший Telegram-подарунок на 15 ⭐.</p>' +
+              '</div>';
+            return;
+          }
+
+          el.historyList.innerHTML = '';
+          list.forEach(function (item) {
+            const row = document.createElement('div');
+            row.className = 'history-item';
+
+            const left = document.createElement('div');
+            left.className = 'history-item-left';
+            left.innerHTML =
+              '<div class="history-item-title">Подарунок ' +
+              item.stars +
+              ' ⭐ для ' +
+              escapeHtml(item.username) +
+              '</div>' +
+              '<div class="history-item-meta">' +
+              escapeHtml(formatDateUk(item.createdAt)) +
+              ' · ID: ' +
+              escapeHtml(item.id) +
+              '</div>';
+
+            const right = document.createElement('div');
+            right.className = 'history-item-right';
+            right.innerHTML =
+              '<div class="history-item-amount">-' +
+              formatBitz(item.amountBit, 0) +
+              ' Bitz</div>' +
+              '<div class="history-item-status">' +
+              escapeHtml(item.status || 'Опрацьовується') +
+              '</div>';
+
+            row.appendChild(left);
+            row.appendChild(right);
+            el.historyList.appendChild(row);
+          });
+        }
+
+        function renderAll() {
+          const speed = getMiningSpeed(state.level);
+          const upgradeCost = getUpgradeCost(state.level);
+          const pct = Math.min(100, (state.balance / MIN_WITHDRAW_BITZ) * 100);
+          const wearPct = Math.min(100, (state.wearSecondsLeft / MAX_WEAR_SECONDS) * 100);
+          const formattedBalance = formatBitzSmart(state.balance);
+
+          el.tgUserHandle.textContent = getTelegramUsername();
+
+          el.soundIconOn.toggleAttribute('hidden', state.muted);
+          el.soundIconOff.toggleAttribute('hidden', !state.muted);
+
+          el.balanceDisplay.innerHTML = formattedBalance + ' <span class="balance-unit">Bitz</span>';
+          el.terminalBalanceOverlay.textContent = formattedBalance + ' Bitz';
+          el.speedLevelLabel.textContent = 'Рів. ' + state.level + ' · Швидкість';
+          el.miningSpeedDisplay.textContent = formatBitzSmart(speed) + ' Bitz/сек';
+
+          el.goalPercentDisplay.textContent = pct.toFixed(2) + '%';
+          el.goalProgressFill.style.width = pct.toFixed(3) + '%';
+          el.goalProgressBarTrack.setAttribute('aria-valuenow', pct.toFixed(2));
+
+          el.wearDisplay.textContent =
+            formatDurationHms(state.wearSecondsLeft) + ' (' + Math.round(wearPct) + '%)';
+          el.wearBarFill.style.width = wearPct.toFixed(2) + '%';
+          el.wearBarTrack.setAttribute('aria-valuenow', String(Math.round(wearPct)));
+          el.wearBarFill.classList.toggle('low', wearPct > 0 && wearPct <= 20);
+          el.wearBarFill.classList.toggle('empty', state.wearSecondsLeft === 0);
+          el.repairBtnText.textContent =
+            state.wearSecondsLeft === 0
+              ? 'Ремонт!'
+              : state.repairAdsProgress > 0
+              ? 'Ремонт (' + state.repairAdsProgress + '/2)'
+              : 'Ремонт';
+
+          el.upgradeCostSub.textContent = formatBitzSmart(upgradeCost) + ' Bitz + 1 рекл.';
+          el.upgradeLevelTag.textContent = 'Рівень ' + (state.level + 1);
+
+          el.terminalStage.setAttribute('data-broken', state.wearSecondsLeft <= 0 ? 'true' : 'false');
+
+          renderHistory();
+        }
+
+        /* =========================================================
+           11. ОБРОБНИКИ РЕМОНТУ, АПГРЕЙДУ ТА ВИВОДУ 20 000 BITZ
+           ========================================================= */
+        async function handleRepairWithBitz() {
+          if (state.wearSecondsLeft >= MAX_WEAR_SECONDS) {
+            closeModal();
+            return;
+          }
+          if (state.balance < REPAIR_COST_BITZ) {
+            const missing = roundBitz(REPAIR_COST_BITZ - state.balance);
+            hapticNotify('error');
+            playErrorSound();
+            showModal({
+              icon: ICONS.warn,
+              title: 'Недостатньо Bitz для ремонту',
+              bodyHtml:
+                'Ремонт за монети коштує <span class="highlight-orange">1.00000 Bitz</span>. Не вистачає <span class="highlight-orange">' +
+                formatBitzSmart(missing) +
+                ' Bitz</span>. Ти можеш полагодити систему безкоштовно за <strong>2 реклами</strong>!',
+              buttons: [
+                { label: 'Закрити', onClick: closeModal },
+                {
+                  label: 'Реклама (' + state.repairAdsProgress + '/2)',
+                  variant: 'primary',
+                  onClick: function () {
+                    closeModal();
+                    handleRepairWithAd();
+                  },
+                },
+              ],
+            });
+            return;
+          }
+
+          state.balance = roundBitz(state.balance - REPAIR_COST_BITZ);
+          state.wearSecondsLeft = MAX_WEAR_SECONDS;
+          state.repairAdsProgress = 0;
+          state.lastTickAt = Date.now();
+          saveState(true);
+          renderAll();
+          hapticNotify('success');
+          playSuccessSound();
+
+          apiPost('/api/repair', {
+            method: 'bitz',
+            cost: REPAIR_COST_BITZ,
+            balance: state.balance,
+            wearSecondsLeft: state.wearSecondsLeft,
+          });
+
+          showModal({
+            icon: ICONS.bitzCoin,
+            title: 'Систему відремонтовано!',
+            bodyHtml:
+              'Списано <span class="highlight-orange">1 Bitz</span>. Термінал знову активний, ресурс відновлено на <strong>5 годин (100%)</strong>!',
+          });
+        }
+
+        async function handleRepairWithAd() {
+          if (state.wearSecondsLeft >= MAX_WEAR_SECONDS) {
+            closeModal();
+            return;
+          }
+          const adIndex = state.repairAdsProgress + 1;
+          const watched = await watchRewardedAd('ремонт ПК ' + adIndex + '/' + REPAIR_ADS_REQUIRED);
+          if (!watched) return;
+
+          state.repairAdsProgress += 1;
+          if (state.repairAdsProgress >= REPAIR_ADS_REQUIRED) {
+            state.wearSecondsLeft = MAX_WEAR_SECONDS;
+            state.repairAdsProgress = 0;
+            state.lastTickAt = Date.now();
+            saveState(true);
+            renderAll();
+            hapticNotify('success');
+            playSuccessSound();
+
+            apiPost('/api/repair', {
+              method: 'ads',
+              cost: 0,
+              balance: state.balance,
+              wearSecondsLeft: state.wearSecondsLeft,
+            });
+
+            showModal({
+              icon: ICONS.wrench,
+              title: 'Систему повністю відремонтовано!',
+              bodyHtml:
+                'Ти переглянув <strong>2 реклами</strong> — зелений код термінала запущено, ресурс становить <span class="highlight-orange">05:00:00 (100%)</span>!',
+            });
+          } else {
+            saveState(true);
+            renderAll();
+            hapticImpact('medium');
+            showModal({
+              icon: ICONS.wrench,
+              title: 'Ремонт: 1 / 2 реклами',
+              bodyHtml:
+                'Залишилось переглянути ще <span class="highlight-orange">1 рекламу</span> для повного ремонту на 5 годин.',
+              buttons: [
+                { label: 'Пізніше', onClick: closeModal },
+                {
+                  label: 'Додивитись (2/2)',
+                  variant: 'primary',
+                  onClick: function () {
+                    closeModal();
+                    handleRepairWithAd();
+                  },
+                },
+              ],
+            });
+          }
+        }
+
+        function openRepairModal() {
+          if (state.wearSecondsLeft >= MAX_WEAR_SECONDS) {
+            showModal({
+              icon: ICONS.bitzCoin,
+              title: 'Система у чудовому стані',
+              bodyHtml:
+                'Поточний ресурс роботи: <span class="highlight-orange">05:00:00 (100%)</span>. Ремонт поки що не потрібен.',
+            });
+            return;
+          }
+
+          const pct = Math.round((state.wearSecondsLeft / MAX_WEAR_SECONDS) * 100);
+          showModal({
+            icon: ICONS.bitzCoin,
+            title: state.wearSecondsLeft === 0 ? 'Термінал зупинено!' : 'Ремонт ПК (5-год. ресурс)',
+            bodyHtml:
+              'Залишилось ресурсу: <span class="highlight-orange">' +
+              formatDurationHms(state.wearSecondsLeft) +
+              ' (' +
+              pct +
+              '%)</span>.<br>Обери спосіб ремонту: <strong>1 Bitz</strong> або <strong>2 реклами</strong> (прогрес: <span class="highlight-orange">' +
+              state.repairAdsProgress +
+              ' / 2</span>).',
+            buttons: [
+              {
+                label: 'За 1 Bitz',
+                iconHtml: '<svg width="16" height="16" viewBox="0 0 40 40"><use href="#bitzCoinSymbol"/></svg>',
+                onClick: function () {
+                  closeModal();
+                  handleRepairWithBitz();
+                },
+              },
+              {
+                label: '2 реклами (' + state.repairAdsProgress + '/2)',
+                variant: 'primary',
+                onClick: function () {
+                  closeModal();
+                  handleRepairWithAd();
+                },
+              },
+            ],
+          });
+        }
+
+        /* Покращення ПК за точною прогресією (+ 1 реклама AdsGram) */
+        async function handleUpgradePc() {
+          const cost = getUpgradeCost(state.level);
+          if (state.balance < cost) {
+            const missing = Math.max(0, roundBitz(cost - state.balance));
+            hapticNotify('error');
+            playErrorSound();
+            showModal({
+              icon: ICONS.bitzCoin,
+              title: 'Недостатньо Bitz',
+              bodyHtml:
+                'Для покращення до <strong>Рівня ' +
+                (state.level + 1) +
+                '</strong> потрібно <span class="highlight-orange">' +
+                formatBitzSmart(cost) +
+                ' Bitz</span> + 1 реклама. Не вистачає ще <span class="highlight-orange">' +
+                formatBitzSmart(missing) +
+                ' Bitz</span>.',
+            });
+            return;
+          }
+
+          const watched = await watchRewardedAd('покращення ПК до Рівня ' + (state.level + 1));
+          if (!watched) return;
+
+          const currentCost = getUpgradeCost(state.level);
+          if (state.balance < currentCost) return;
+
+          state.balance = roundBitz(state.balance - currentCost);
+          state.level += 1;
+          const nextSpeed = getMiningSpeed(state.level);
+
+          saveState(true);
+          renderAll();
+          hapticNotify('success');
+          playSuccessSound();
+
+          apiPost('/api/upgrade', {
+            level: state.level,
+            cost: currentCost,
+            speed: nextSpeed,
+            balance: state.balance,
+          });
+
+          const rect = el.terminalStage.getBoundingClientRect();
+          spawnLevelParticles(rect.width / 2, rect.height / 2);
+
+          showModal({
+            icon: ICONS.bitzCoin,
+            title: 'Рівень ' + state.level + ' активовано!',
+            bodyHtml:
+              'Нова швидкість термінала: <span class="highlight-orange">' +
+              formatBitzSmart(nextSpeed) +
+              ' Bitz/сек</span>!',
+          });
+        }
+
+        /* Виведення подарунка від 20 000 Bitz (+ 1 реклама AdsGram) */
+        async function handleWithdrawGift() {
+          if (state.balance < MIN_WITHDRAW_BITZ) {
+            const missing = Math.max(0, roundBitz(MIN_WITHDRAW_BITZ - state.balance));
+            hapticNotify('error');
+            playErrorSound();
+            showModal({
+              icon: ICONS.orangeStar,
+              title: 'Ще рано для виводу',
+              bodyHtml:
+                'Мінімальна сума виводу для подарунка <strong>15 ⭐</strong> — <span class="highlight-orange">20 000 Bitz</span>.<br>Залишилось зібрати: <span class="highlight-orange">' +
+                formatBitzSmart(missing) +
+                ' Bitz</span>.<br><br>Обробка може займати більше 7 днів.',
+            });
+            return;
+          }
+
+          const watched = await watchRewardedAd('виведення 20 000 Bitz');
+          if (!watched) return;
+          if (state.balance < MIN_WITHDRAW_BITZ) return;
+
+          const username = getTelegramUsername();
+          const record = {
+            id: 'BM-' + Math.random().toString(36).substring(2, 7).toUpperCase(),
+            username: username,
+            amountBit: MIN_WITHDRAW_BITZ,
+            stars: GOAL_STARS,
+            createdAt: new Date().toISOString(),
+            status: 'Опрацьовується',
+          };
+
+          state.balance = roundBitz(state.balance - MIN_WITHDRAW_BITZ);
+          state.withdrawals = [record, ...(state.withdrawals || [])];
+          saveState(true);
+          renderAll();
+          hapticNotify('success');
+          playSuccessSound();
+
+          const serverResp = await apiPost('/api/withdraw', {
+            withdrawal: record,
+            balance: state.balance,
+          });
+          if (serverResp && serverResp.status) {
+            record.status = String(serverResp.status);
+            saveState(true);
+            renderAll();
+          }
+
+          showModal({
+            icon: ICONS.orangeStar,
+            title: 'Заявку оформлено!',
+            bodyHtml:
+              'Подарунок <span class="highlight-orange">15 ⭐</span> (20 000 Bitz) зарезервовано для <strong>' +
+              escapeHtml(username) +
+              '</strong>.<br>Номер заявки: <span class="highlight-orange">' +
+              escapeHtml(record.id) +
+              '</span>.<br><br>Обробка може займати більше 7 днів.',
+            buttons: [
+              { label: 'Чудово', onClick: closeModal },
+              {
+                label: 'До історії',
+                variant: 'primary',
+                onClick: function () {
+                  closeModal();
+                  switchTab('history');
+                },
+              },
+            ],
+          });
+        }
+
+        function switchTab(tab) {
+          activeTab = tab;
+          const isMining = tab === 'mining';
+          const isHistory = tab === 'history';
+
+          el.miningView.hidden = !isMining;
+          el.historyView.hidden = !isHistory;
+
+          el.tabMiningBtn.classList.toggle('active', isMining);
+          el.tabHistoryBtn.classList.toggle('active', isHistory);
+
+          el.tabMiningBtn.setAttribute('aria-pressed', String(isMining));
+          el.tabHistoryBtn.setAttribute('aria-pressed', String(isHistory));
+
+          if (isMining) {
+            requestAnimationFrame(resizeCanvases);
+          }
+        }
+
+        el.repairPcBtn.addEventListener('click', openRepairModal);
+        el.upgradePcBtn.addEventListener('click', handleUpgradePc);
+        el.withdrawGiftBtn.addEventListener('click', handleWithdrawGift);
+
+        el.tabMiningBtn.addEventListener('click', function () {
+          switchTab('mining');
+        });
+        el.tabHistoryBtn.addEventListener('click', function () {
+          switchTab('history');
+        });
+
+        el.soundToggleBtn.addEventListener('click', function () {
+          state.muted = !state.muted;
+          saveState(false);
+          renderAll();
+          if (!state.muted) playSuccessSound();
+        });
+
+        el.modalBackdrop.addEventListener('click', function (e) {
+          if (e.target === el.modalBackdrop && !adRunning) {
+            closeModal();
+          }
+        });
+
+        window.addEventListener('resize', resizeCanvases);
+
+        /* Старт застосунку */
+        applyOfflineMining();
+        saveState(false);
+        renderAll();
+        resizeCanvases();
+        syncFromCloudStorage();
+        syncInitialWithBackend();
+        setInterval(stepPassiveMiningSecond, 1000);
+        requestAnimationFrame(renderTerminalFrame);
+      })();
+    </script>
+  </body>
+</html>
