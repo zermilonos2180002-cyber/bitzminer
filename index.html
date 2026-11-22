@@ -1149,7 +1149,7 @@
            1. КОНФІГУРАЦІЯ, API PYTHON-БЕКЕНДУ ТА ЕКОНОМІКА BITZMINER
            ========================================================= */
         const API_URL = "";
-        const ADSGRAM_BLOCK_ID = "YOUR_BLOCK_ID";
+        const ADSGRAM_BLOCK_ID = "61269";
         const STORAGE_KEY = 'bitzminer_state_v1';
         const MIN_WITHDRAW_BITZ = 20000;
         const GOAL_STARS = 15;
@@ -1692,7 +1692,7 @@
             const hasRealId = ADSGRAM_BLOCK_ID && ADSGRAM_BLOCK_ID !== 'YOUR_BLOCK_ID';
             if (hasRealId && window.Adsgram && typeof window.Adsgram.init === 'function') {
               try {
-                const AdController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+                const AdController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID, debug: true });
                 const result = await AdController.show();
                 return Boolean(result && result.done);
               } catch (_) {
